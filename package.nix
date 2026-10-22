@@ -2,7 +2,7 @@
   pkgs ? import <nixpkgs> { },
   lib,
   py-vers ? pkgs.python313Packages,
-  fetchPypi,
+  fetchFromGitHub,
 }:
 
 let
@@ -12,18 +12,34 @@ in
 
 py-vers.buildPythonApplication (finalAttrs: rec {
   pname = "gamesentenceminer";
-  version = "2026.10.0.post1";
+  version = "2026.10.0";
   pyproject = true;
 
-  src = fetchPypi {
-    inherit (finalAttrs) pname version;
-    hash = "sha256-HqNXCpVqtBJdvJiY1ESYyHQrJSSPJLpxRGCjEvolBcw=";
+  # GitHub
+  src = fetchFromGitHub {
+    owner = "bpwhelan";
+    repo = "GameSentenceMiner";
+    tag = "v${version}";
+    hash = "sha256-D0rS5asVA/bRJh/x/LLVC1o1cHqI1W95RKf/QaRukq0=";
   };
 
-  cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
-    inherit (finalAttrs) pname version src sourceRoot;
-    hash = "sha256-ooGfsA7M7JBAuQ9DhKqV2XfzXFyqZt6nsc59IC10Vkc=";
+
+  
+  # Rust
+  cargoRoot = "native/gsm-native";
+
+  cargoDeps = pkgs.rustPlatform.importCargoLock {
+    lockFile = "${src}/${cargoRoot}/Cargo.lock";
   };
+
+ 
+
+  # NodeJS (Frontend)
+#  npmDeps = pkgs.fetchNpmDeps {  
+#    inherit (finalAttrs) src;
+#    hash = "";
+#  }; 
+ # npmRoot = ".";
   
   build-system = with py-vers; [
     setuptools
@@ -37,12 +53,16 @@ py-vers.buildPythonApplication (finalAttrs: rec {
     rustc
     gcc
     makeWrapper
-    ffmpeg
-    obs-studio
+    nodejs
+    nodejsInstallExecutables
+  #  npmHooks.npmConfigHook
+  #  npmHooks.npmBuildHook
+  #  npmHooks.npmInstallHook
   ];
 
   buildInputs = with pkgs; [
     libX11
+    electron
   ];
 
   # Python dependencies
@@ -124,8 +144,6 @@ py-vers.buildPythonApplication (finalAttrs: rec {
     "meikiocr"
   ];
 
-  sourceRoot = "gamesentenceminer-${finalAttrs.version}";
-  cargoRoot = "native/gsm-native";
 
   postPatch = ''
     substituteInPlace GameSentenceMiner/util/config/configuration.py \
@@ -138,6 +156,7 @@ py-vers.buildPythonApplication (finalAttrs: rec {
   ];
  
   doCheck = false;
+  strictDeps = true;
 
   
 
