@@ -8,6 +8,9 @@
 let
   # Python version
   py-vers = pkgs.python313Packages;
+
+  # Frontend
+  
 in
 
 py-vers.buildPythonApplication (finalAttrs: rec {
