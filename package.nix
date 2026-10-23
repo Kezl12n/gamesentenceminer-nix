@@ -6,16 +6,11 @@
 }:
 
 let
-  # Python version
-  py-vers = pkgs.python313Packages;
-in
-
-py-vers.buildPythonApplication (finalAttrs: rec {
+  # Package info
   pname = "gamesentenceminer";
   version = "2026.10.0";
-  pyproject = true;
 
-  # GitHub
+  # GitHub source package
   src = fetchFromGitHub {
     owner = "bpwhelan";
     repo = "GameSentenceMiner";
@@ -23,21 +18,50 @@ py-vers.buildPythonApplication (finalAttrs: rec {
     hash = "sha256-D0rS5asVA/bRJh/x/LLVC1o1cHqI1W95RKf/QaRukq0=";
   };
   
+  # Python version
+  py-vers = pkgs.python313Packages;
+  
+  # Electron frontend
+  gsm-frontend = pkgs.buildNpmPackage (finalAttrs: {
+    inherit pname version src;
+    npmInstallFlags = [ "--ignore-scripts" ];
+    
+
+    npmRoot = ".";
+    
+  
+    npmDeps = pkgs.fetchNpmDeps {  
+      inherit (finalAttrs) src;
+      hash = "sha256-2N1yVwhW0BSFmy2lumBKbeTFgh9DOQMtW1kDTfulZyo=";
+    };
+
+    strictDeps = true;
+
+    env = {
+      ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
+      PYTHON = "${py-vers.python}/bin/python";
+    };
+
+    #postPatch = ''
+    #  echo 'hello?'
+   # '';
+    
+   
+    
+  });
+in
+
+py-vers.buildPythonApplication (finalAttrs: rec {
+  inherit pname version src;
+  pyproject = true;
+
+    
   # Rust
   cargoRoot = "native/gsm-native";
 
   cargoDeps = pkgs.rustPlatform.importCargoLock {
     lockFile = "${src}/${cargoRoot}/Cargo.lock";
   };
-
-  # NodeJS (Frontend)
-  npmRoot = ".";
-  
-  npmDeps = pkgs.fetchNpmDeps {  
-    inherit (finalAttrs) src;
-    hash = "sha256-2N1yVwhW0BSFmy2lumBKbeTFgh9DOQMtW1kDTfulZyo=";
-  }; 
-
  
   
   build-system = with py-vers; [
@@ -50,18 +74,19 @@ py-vers.buildPythonApplication (finalAttrs: rec {
     cargo
     rustPlatform.cargoSetupHook
     rustc
+    pkg-config
+    gnumake
     gcc
     makeWrapper
-    nodejs
-    nodejsInstallExecutables
-    npmHooks.npmConfigHook
-    npmHooks.npmBuildHook
-    npmHooks.npmInstallHook
+    node-gyp
   ];
 
   buildInputs = with pkgs; [
     libX11
     electron
+    glibc
+    libgcc
+    gsm-frontend
   ];
 
   # Python dependencies
@@ -143,28 +168,17 @@ py-vers.buildPythonApplication (finalAttrs: rec {
     "meikiocr"
   ];
 
-  env = {
-    ELECTRON_SKIP_BINARY_DOWNLOAD = 1;
-  };
-
-
+  
   postPatch = ''
-    # Remove frida-npm from deps 
-    sed -i '/"frida":/d' package.json
-
+     
     substituteInPlace GameSentenceMiner/util/config/configuration.py \
       --replace-fail "/usr/bin/obs" "${pkgs.obs-studio}/bin/obs"
   '';
 
-  # backend wrapper
+  # Backend wrapper
   makeWrapperArgs = [
     "--prefix PATH : ${lib.makeBinPath [ pkgs.ffmpeg pkgs.obs-studio ]}"
   ];
-
-  postInstall = ''
-    makeWrapper ${pkgs.nodejs}/bin/node $out/bin/gsm-ui \
-        --add-flags "$out/lib/node_modules/my-app/dist/main/bootstrap.js"
-  '';
  
   doCheck = false;
   strictDeps = true;
