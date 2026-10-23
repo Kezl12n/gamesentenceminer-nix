@@ -22,8 +22,6 @@ py-vers.buildPythonApplication (finalAttrs: rec {
     tag = "v${version}";
     hash = "sha256-D0rS5asVA/bRJh/x/LLVC1o1cHqI1W95RKf/QaRukq0=";
   };
-
-
   
   # Rust
   cargoRoot = "native/gsm-native";
@@ -32,14 +30,15 @@ py-vers.buildPythonApplication (finalAttrs: rec {
     lockFile = "${src}/${cargoRoot}/Cargo.lock";
   };
 
- 
-
   # NodeJS (Frontend)
-#  npmDeps = pkgs.fetchNpmDeps {  
-#    inherit (finalAttrs) src;
-#    hash = "";
-#  }; 
- # npmRoot = ".";
+  npmRoot = ".";
+  
+  npmDeps = pkgs.fetchNpmDeps {  
+    inherit (finalAttrs) src;
+    hash = "sha256-2N1yVwhW0BSFmy2lumBKbeTFgh9DOQMtW1kDTfulZyo=";
+  }; 
+
+ 
   
   build-system = with py-vers; [
     setuptools
@@ -55,9 +54,9 @@ py-vers.buildPythonApplication (finalAttrs: rec {
     makeWrapper
     nodejs
     nodejsInstallExecutables
-  #  npmHooks.npmConfigHook
-  #  npmHooks.npmBuildHook
-  #  npmHooks.npmInstallHook
+    npmHooks.npmConfigHook
+    npmHooks.npmBuildHook
+    npmHooks.npmInstallHook
   ];
 
   buildInputs = with pkgs; [
@@ -144,23 +143,31 @@ py-vers.buildPythonApplication (finalAttrs: rec {
     "meikiocr"
   ];
 
+  env = {
+    ELECTRON_SKIP_BINARY_DOWNLOAD = 1;
+  };
+
 
   postPatch = ''
+    # Remove frida-npm from deps 
+    sed -i '/"frida":/d' package.json
+
     substituteInPlace GameSentenceMiner/util/config/configuration.py \
       --replace-fail "/usr/bin/obs" "${pkgs.obs-studio}/bin/obs"
   '';
-  
+
+  # backend wrapper
   makeWrapperArgs = [
     "--prefix PATH : ${lib.makeBinPath [ pkgs.ffmpeg pkgs.obs-studio ]}"
-    
   ];
+
+  postInstall = ''
+    makeWrapper ${pkgs.nodejs}/bin/node $out/bin/gsm-ui \
+        --add-flags "$out/lib/node_modules/my-app/dist/main/bootstrap.js"
+  '';
  
   doCheck = false;
   strictDeps = true;
-
-  
-
-
 
   meta = {
     changelog = "https://github.com/bpwhelan/GameSentenceMiner/releases/tag/v${finalAttrs.version}";
