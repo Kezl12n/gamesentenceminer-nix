@@ -10,45 +10,19 @@ let
   pname = "gamesentenceminer";
   version = "2026.10.0";
 
-  # GitHub source package
+  
+  # Source (For backend) 
   src = fetchFromGitHub {
     owner = "bpwhelan";
     repo = "GameSentenceMiner";
     tag = "v${version}";
     hash = "sha256-D0rS5asVA/bRJh/x/LLVC1o1cHqI1W95RKf/QaRukq0=";
-  };
+ };
   
-  # Python version
-  py-vers = pkgs.python313Packages;
-  
-  # Electron frontend
-  gsm-frontend = pkgs.buildNpmPackage (finalAttrs: {
-    inherit pname version src;
-    npmInstallFlags = [ "--ignore-scripts" ];
-    
-
-    npmRoot = ".";
-    
-  
-    npmDeps = pkgs.fetchNpmDeps {  
-      inherit (finalAttrs) src;
-      hash = "sha256-2N1yVwhW0BSFmy2lumBKbeTFgh9DOQMtW1kDTfulZyo=";
-    };
-
-    strictDeps = true;
-
-    env = {
-      ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
-      PYTHON = "${py-vers.python}/bin/python";
-    };
-
-    #postPatch = ''
-    #  echo 'hello?'
-   # '';
-    
    
-    
-  });
+# Python version
+py-vers = pkgs.python313Packages;
+  
 in
 
 py-vers.buildPythonApplication (finalAttrs: rec {
@@ -62,7 +36,7 @@ py-vers.buildPythonApplication (finalAttrs: rec {
   cargoDeps = pkgs.rustPlatform.importCargoLock {
     lockFile = "${src}/${cargoRoot}/Cargo.lock";
   };
- 
+  
   
   build-system = with py-vers; [
     setuptools
@@ -73,20 +47,15 @@ py-vers.buildPythonApplication (finalAttrs: rec {
   nativeBuildInputs = with pkgs; [
     cargo
     rustPlatform.cargoSetupHook
-    rustc
-    pkg-config
-    gnumake
+    rustc 
     gcc
     makeWrapper
-    node-gyp
+    qt6.wrapQtAppsHook
   ];
 
   buildInputs = with pkgs; [
     libX11
-    electron
-    glibc
-    libgcc
-    gsm-frontend
+    qt6.qtbase
   ];
 
   # Python dependencies
@@ -164,30 +133,36 @@ py-vers.buildPythonApplication (finalAttrs: rec {
     # Windows-only 
     "oneocr"
 
-    # Nixpkgs unavaibility/Need package.
+    # Nixpkgs unavailbility/future package
     "meikiocr"
   ];
 
   
   postPatch = ''
-     
     substituteInPlace GameSentenceMiner/util/config/configuration.py \
       --replace-fail "/usr/bin/obs" "${pkgs.obs-studio}/bin/obs"
   '';
+
 
   # Backend wrapper
   makeWrapperArgs = [
     "--prefix PATH : ${lib.makeBinPath [ pkgs.ffmpeg pkgs.obs-studio ]}"
   ];
- 
+
+  
+
+  
   doCheck = false;
   strictDeps = true;
 
   meta = {
     changelog = "https://github.com/bpwhelan/GameSentenceMiner/releases/tag/v${finalAttrs.version}";
     homepage = "https://github.com/bpwhelan/GameSentenceMiner";
-    description = "A tool for mining sentences from games. Update: Dependencies, replay buffer based line searching, and bug fixes.";
+    description = "A tool for mining sentences from games.";
     license = lib.licenses.gpl3Only;
+    sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
   };
 
 })
+
+ 
