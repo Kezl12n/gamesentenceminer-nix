@@ -25,10 +25,16 @@ in
     ];
 
   extraInstallCommands = ''
-    install -m 444 -D ${appimageContents}/${desktopName}.desktop $out/share/applications/${desktopName}.desktop
-    install -m 444 -D ${appimageContents}/${desktopName}.png  $out/share/icons/hicolor/512x512/apps/${desktopName}.png
-    substituteInPlace $out/share/applications/${desktopName}.desktop \
-      --replace-fail 'Exec=AppRun' 'Exec=gamesentenceminer'
+    install -m 444 -D \
+      "${appimageContents}/${desktopName}.desktop" \
+      "$out/share/applications/${desktopName}.desktop"
+
+    install -m 444 -D \
+      "${appimageContents}/${desktopName}.png" \
+      "$out/share/pixmaps/${desktopName}.png"
+
+    substituteInPlace "$out/share/applications/${desktopName}.desktop" \
+      --replace-fail 'Exec=AppRun' "Exec=$out/bin/${pname}"
   '';
 
   meta = {
