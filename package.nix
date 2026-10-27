@@ -22,6 +22,11 @@ in
       pkgs.libGL
       pkgs.glib
       pkgs.zstd
+      pkgs.libevdev
+      pkgs.xclip
+      pkgs.ffmpeg
+      pkgs.portaudio
+      pkgs.qt6.qtmultimedia
     ];
 
   extraInstallCommands = ''
@@ -33,10 +38,11 @@ in
       "${appimageContents}/${desktopName}.png" \
       "$out/share/pixmaps/${desktopName}.png"
 
-    mv $out/share/applications/${desktopName}.desktop $out/share/applications/${pname}.desktop
 
-    substituteInPlace "$out/share/applications/${pname}.desktop" \
-      --replace-fail 'Exec=AppRun' "Exec=$out/bin/${pname}"
+    substituteInPlace "$out/share/applications/${desktopName}.desktop" \
+      --replace-fail 'Exec=AppRun' "Exec=$out/bin/${pname}" \
+      --replace-fail 'Comment=GameSentenceMiner' "Comment=\${meta.description}"
+
   '';
 
   meta = {
