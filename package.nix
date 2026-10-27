@@ -1,168 +1,46 @@
-{
-  pkgs ? import <nixpkgs> { },
-  lib,
-  py-vers ? pkgs.python313Packages,
-  fetchFromGitHub,
-}:
+{ pkgs, ... }:
 
 let
-  # Package info
   pname = "gamesentenceminer";
-  version = "2026.10.0";
+  version = "2026.10.1";
 
+  src = pkgs.fetchurl {
+    url = "https://github.com/bpwhelan/GameSentenceMiner/releases/download/v${version}/GameSentenceMiner-${version}.AppImage";
+    hash = "sha256-/p6bHqE43oWDtjYTsgJyYl27O9L4qP+2REdP7bC7/r0=";
+  };
   
-  # Source (For backend) 
-  src = fetchFromGitHub {
-    owner = "bpwhelan";
-    repo = "GameSentenceMiner";
-    tag = "v${version}";
-    hash = "sha256-D0rS5asVA/bRJh/x/LLVC1o1cHqI1W95RKf/QaRukq0=";
- };
+  # Desktop & icon
+  desktopName = "com.beangate.gamesentenceminer";
   
-   
-# Python version
-py-vers = pkgs.python313Packages;
-  
+  appimageContents = pkgs.appimageTools.extract { inherit pname version src; };  
 in
 
-py-vers.buildPythonApplication (finalAttrs: rec {
-  inherit pname version src;
-  pyproject = true;
+ pkgs.appimageTools.wrapType2 rec {
+    inherit pname version src desktopName;
 
-    
-  # Rust
-  cargoRoot = "native/gsm-native";
+    extraPkgs = pkgs: [
+      pkgs.libGL
+      pkgs.glib
+      pkgs.zstd
+    ];
 
-  cargoDeps = pkgs.rustPlatform.importCargoLock {
-    lockFile = "${src}/${cargoRoot}/Cargo.lock";
-  };
-  
-  
-  build-system = with py-vers; [
-    setuptools
-    setuptools-rust
-    pythonRelaxDepsHook
-  ];
-
-  nativeBuildInputs = with pkgs; [
-    cargo
-    rustPlatform.cargoSetupHook
-    rustc 
-    gcc
-    makeWrapper
-    qt6.wrapQtAppsHook
-  ];
-
-  buildInputs = with pkgs; [
-    libX11
-    qt6.qtbase
-  ];
-
-  # Python dependencies
-  dependencies = (with py-vers; [
-    libevdev
-    uv
-    pip
-    openai
-    requests
-    cryptography
-    watchdog
-    soundfile
-    toml
-    psutil
-    xlib
-    rapidfuzz
-    plyer
-    keyboard
-    websockets
-    dataclasses-json
-    obsws-python
-    pytz
-    numpy
-    faster-whisper
-    kaldi-native-fbank
-    regex
-    opencv-python
-    opencv-python-headless
-    sounddevice
-    groq
-    flask
-    pystray
-    pillow
-    flask-compress
-    jaconv
-    loguru
-    pyperclipfix
-    desktop-notifier
-    mss
-    pyqt6
-    pyqtdarktheme
-    pysbd
-    pypresence
-    curl-cffi
-    protobuf
-    py7zr
-    waitress
-    ollama
-    google-genai
-    tzlocal
-    langid
-    flasgger
-    aiohttp
-  ]);
-
-  pythonRelaxDeps = [
-    "openai"
-    "uv"
-    "cryptography"
-    "soundfile"
-    "numpy"
-    "opencv-python"
-    "opencv-python-headless"
-    "groq"
-    "onnxruntime"
-    "tokenizers"
-    "jaconv"
-    "mss"
-    "curl-cffi"
-    "google-genai"
-    "aiohttp"
-  ];
-
-  pythonRemoveDeps = [
-    # Windows-only 
-    "oneocr"
-
-    # Nixpkgs unavailbility/future package
-    "meikiocr"
-  ];
-
-  
-  postPatch = ''
-    substituteInPlace GameSentenceMiner/util/config/configuration.py \
-      --replace-fail "/usr/bin/obs" "${pkgs.obs-studio}/bin/obs"
+  extraInstallCommands = ''
+    install -m 444 -D ${appimageContents}/${desktopName}.desktop $out/share/applications/${desktopName}.desktop
+    install -m 444 -D ${appimageContents}/${desktopName}.png  $out/share/icons/hicolor/512x512/apps/${desktopName}.png
+    substituteInPlace $out/share/applications/${desktopName}.desktop \
+      --replace-fail 'Exec=AppRun' 'Exec=gamesentenceminer'
   '';
 
-
-  # Backend wrapper
-  makeWrapperArgs = [
-    "--prefix PATH : ${lib.makeBinPath [ pkgs.ffmpeg pkgs.obs-studio ]}"
-  ];
-
-  
-
-  
-  doCheck = false;
-  strictDeps = true;
-
   meta = {
-    changelog = "https://github.com/bpwhelan/GameSentenceMiner/releases/tag/v${finalAttrs.version}";
+    changelog = "https://github.com/bpwhelan/GameSentenceMiner/releases/tag/v${version}";
     homepage = "https://github.com/bpwhelan/GameSentenceMiner";
     description = "A tool for mining sentences from games.";
-    license = lib.licenses.gpl3Only;
-    sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
-  };
+    license = pkgs.lib.licenses.gpl3Only;
+    sourceProvenance = with pkgs.lib.sourceTypes; [ binaryNativeCode ];
+  };    
+ }
 
-})
 
- 
+
+
+
