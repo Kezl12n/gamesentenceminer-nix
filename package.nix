@@ -35,7 +35,7 @@ in
     changelog = "https://github.com/bpwhelan/GameSentenceMiner/releases/tag/v${version}";
     homepage = "https://github.com/bpwhelan/GameSentenceMiner";
     description = "A tool for mining sentences from games.";
-    license = pkgs.lib.licenses.gpl3Only;
+    license = pkgs.lib.licenses.gpl3Plus;
     sourceProvenance = with pkgs.lib.sourceTypes; [ binaryNativeCode ];
   };    
  }
