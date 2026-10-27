@@ -33,7 +33,9 @@ in
       "${appimageContents}/${desktopName}.png" \
       "$out/share/pixmaps/${desktopName}.png"
 
-    substituteInPlace "$out/share/applications/${desktopName}.desktop" \
+    mv $out/share/applications/${desktopName}.desktop $out/share/applications/${pname}.desktop
+
+    substituteInPlace "$out/share/applications/${pname}.desktop" \
       --replace-fail 'Exec=AppRun' "Exec=$out/bin/${pname}"
   '';
 
