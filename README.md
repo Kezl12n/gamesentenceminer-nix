@@ -18,10 +18,18 @@ Intention: Make it work and convenient enough for devices running NixOS.
 
 ---
 
+## Desktop entry missing
+Launchers may not detect the added desktop entry. This can be easily fixed by adding the command:
 
-## Testing Checklist 
+```
+cp /run/current-system/sw/share/com.beangate.gamesentenceminer.desktop ~/.local/share/application 
+
+```
+
+## Testing Checklist (incomplete)
 
 - [x] Communicating with OBS, Anki
+- [x] Setting up with wayland (Although you may experience limitations when using wayland compared to X11)
 - [ ] OCR Operations (Google Lens works as of 2026-10-27)
 
 

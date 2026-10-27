@@ -42,10 +42,6 @@ in
     substituteInPlace "$out/share/applications/${desktopName}.desktop" \
       --replace-fail 'Exec=AppRun' "Exec=$out/bin/${pname}" \
       --replace-fail 'Comment=GameSentenceMiner' "Comment=${meta.description}"
-
-
-    mkdir -p $HOME/.local/share/applications
-    cp $out/share/applications/${desktopName}.desktop $HOME/.local/share/applications
   '';
 
   meta = {
