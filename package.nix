@@ -31,11 +31,11 @@ in
       pkgs.xclip
       pkgs.libx11
       pkgs.libxcb
-      pkgs.xcbutilcursor
-      pkgs.xcbutilwm
-      pkgs.xcbutilimage
-      pkgs.xcbutilkeysyms
-      pkgs.xcbutilrenderutil
+      pkgs.libxcb-cursor
+      pkgs.libxcb-wm
+      pkgs.libxcb-image
+      pkgs.libxcb-keysyms
+      pkgs.libxcb-render-util
       pkgs.libxkbcommon
     ];
 
