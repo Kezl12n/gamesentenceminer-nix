@@ -22,7 +22,7 @@ Intention: Make it work and convenient enough for devices running NixOS.
 Launchers may not detect the added desktop entry. This can be easily fixed by adding the command:
 
 ```
-cp /run/current-system/sw/share/com.beangate.gamesentenceminer.desktop ~/.local/share/application 
+cp /run/current-system/sw/share/applications/com.beangate.gamesentenceminer.desktop ~/.local/share/application 
 
 ```
 
