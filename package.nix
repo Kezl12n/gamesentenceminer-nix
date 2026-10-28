@@ -23,10 +23,20 @@ in
       pkgs.glib
       pkgs.zstd
       pkgs.libevdev
-      pkgs.xclip
       pkgs.ffmpeg
       pkgs.portaudio
       pkgs.qt6.qtmultimedia
+
+      # X11 Dependencies (Also for xwayland)
+      pkgs.xclip
+      pkgs.libx11
+      pkgs.libxcb
+      pkgs.xcbutilcursor
+      pkgs.xcbutilwm
+      pkgs.xcbutilimage
+      pkgs.xcbutilkeysyms
+      pkgs.xcbutilrenderutil
+      pkgs.libxkbcommon
     ];
 
   extraInstallCommands = ''
