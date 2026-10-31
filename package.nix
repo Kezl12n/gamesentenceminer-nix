@@ -2,11 +2,11 @@
 
 let
   pname = "gamesentenceminer";
-  version = "2026.10.1";
+  version = "2026.10.2";
 
   src = pkgs.fetchurl {
     url = "https://github.com/bpwhelan/GameSentenceMiner/releases/download/v${version}/GameSentenceMiner-${version}.AppImage";
-    hash = "sha256-/p6bHqE43oWDtjYTsgJyYl27O9L4qP+2REdP7bC7/r0=";
+    hash = "sha256-uAL5gPHfEzY9827vMteCENPjm8yTYcXAL3wqNhgi4dU=";
   };
   
   # Desktop & icon
@@ -27,7 +27,7 @@ in
       pkgs.portaudio
       pkgs.qt6.qtmultimedia
 
-      # X11 Dependencies (Also for xwayland)
+      # X11 Dependencies (Also for Xwayland)
       pkgs.xclip
       pkgs.libx11
       pkgs.libxcb
